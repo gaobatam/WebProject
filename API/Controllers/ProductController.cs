@@ -9,7 +9,7 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-
+using API.Helpers;
 namespace API.Controllers
 {
     [ApiController]
@@ -35,14 +35,15 @@ namespace API.Controllers
             this.mapper = mapper;
         }
         [HttpGet]
-        public async Task <ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProduct()
+        public async Task <ActionResult<Pagination<ProductToReturnDto>>> GetProduct([FromQuery]ProductSpecParams productParams)
         { //tách functon này ra thành 1 task riêng, như vậy khi thực hiện query nó sẽ thực thi như là 1 task khác nên không phải đợi khi nó đang thực hiện
             
-            var specification= new ProductsWithTypesAndBrandsSpecification();
+            var specification= new ProductsWithTypesAndBrandsSpecification(productParams);
             var products = await productRepo.ListAsync(specification);
-            
-            return Ok(mapper
-                .Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>>(products));
+            var countSpec = new ProductWithFiltersForCountSpecification(productParams);
+            var totalItems = await productRepo.CountAsync(countSpec);
+            var data = mapper.Map<IReadOnlyList<Product>, IReadOnlyList<ProductToReturnDto>> (products);
+            return Ok(new Pagination<ProductToReturnDto>(productParams.PageIndex, productParams.PageSize, totalItems,data));
         }
         
         [HttpGet("{id}")]
