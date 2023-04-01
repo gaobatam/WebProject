@@ -9,3 +9,16 @@
     top: -12px;
     right: 32px;
 }
+
+a{
+    text-decoration: none;
+    color:rgba(206, 187, 187, 0.884);
+
+    &.active{
+        color:orange
+    }
+}
+
+.logo{
+    cursor: pointer;
+}
